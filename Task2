@@ -1,0 +1,125 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Naming_identifier_2
+{
+   public enum Gender
+    {     
+         Male, Female
+    }
+}
+
+namespace Naming_identifier_2
+{
+   public enum NickName
+    {
+         Terminator, SexBomb
+    }
+}
+
+
+
+namespace Naming_identifier_2
+{
+    public class Human
+    {
+        private string name { get; set; }
+        private int age { get; set; }
+        
+        public Gender Sex { get; set; }
+        public NickName NickName { get; set; }
+
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
+
+         public int Age
+        {
+            get { return age; }
+            set
+            {
+                if (0 < value && value < 120)
+                {
+                    age = value;
+                }
+                else
+                {
+                    throw new IndexOutOfRangeException("Age must be in interval (0 120)!");
+                }
+            }
+        }
+
+        //public Human(string name, int age, Gender sex, NickName nickName)
+        //{
+        //    this.Name = name;
+        //    this.Age = age;
+        //    this.Sex = sex;
+        //    this.NickName = nickName;
+        //}
+
+        public static Human MakeHuman(int magicNumber)
+        {
+            Human neusHuman = new Human();
+            neusHuman.Age = magicNumber;
+            if (magicNumber % 2 == 0)
+            {
+                neusHuman.Name = "Godfather";
+                neusHuman.Sex = Gender.Male;
+                neusHuman.NickName = NickName.Terminator;
+            }
+            else
+            {
+                neusHuman.Name = "Andjoli";
+                neusHuman.Sex = Gender.Female;
+                neusHuman.NickName = NickName.SexBomb;
+            }
+            return neusHuman;
+        }
+
+        public override string ToString()
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append(Environment.NewLine);
+                sb.Append("My name is: ");
+                sb.Append(Name);
+                sb.Append(".");
+                sb.Append(" I am on age of ");
+                sb.Append(Age);
+                sb.Append(".");
+                sb.Append(Environment.NewLine);
+                sb.Append("My sex is ");
+                sb.Append(Sex);
+                sb.Append("!");
+                sb.Append(" I'm also known as ");
+                sb.Append(NickName);
+                sb.Append("!!!");
+                sb.Append(Environment.NewLine);
+                return sb.ToString();
+            }
+    }
+}
+
+namespace Naming_identifier_2
+{
+    class Test
+    {
+        static void Main()
+        {
+           /* //Miss the second page!!!
+            Human someone = new Human("Gosho", 25, Gender.Female, NickName.Terminator);
+            Console.WriteLine(someone.ToString());
+            */
+
+            Human randomHuman1 = Human.MakeHuman(22);
+            Console.WriteLine(randomHuman1.ToString());
+
+            Human randomHuman2 = Human.MakeHuman(21);
+            Console.WriteLine(randomHuman2.ToString());
+        
+        }
+    }
+}
