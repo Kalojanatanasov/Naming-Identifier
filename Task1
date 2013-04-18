@@ -1,0 +1,37 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Naming_identifier_1
+{
+    class PrintOnConsole
+    {
+       public void PrintCurrentVariableOnConsole(bool currentVariable)
+        {
+            string currentVariableAsString = currentVariable.ToString();
+            Console.WriteLine(currentVariableAsString);
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Naming_identifier_1
+{
+    class Test
+    {
+         //useless
+        //private const int MAXCOUNT = 6;
+
+            public static void Main()
+            {
+                PrintOnConsole currentInstance =  new PrintOnConsole();
+                currentInstance.PrintCurrentVariableOnConsole(true);
+            }
+    }
+}
