@@ -1,0 +1,390 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Minesweeper
+{
+  public class minesweepers
+	{
+		static void Main(string[] args)
+		{
+            const int MAXIMUM = 35;
+
+			string playerTurn = string.Empty;
+
+			char[,] gameField = CreateGameField();
+
+			char[,] bombs = Placebombs();
+
+			int counterPlayerMoves = 0;
+            int row = 0;
+            int column = 0;
+
+            List<Score> playerowesultHighScore = new List<Score>(6);
+			
+            bool explosion = false;
+			bool startGameFlag = true;
+			bool winGameFlag = false;
+
+			do
+			{
+				if (startGameFlag)
+				{
+                    Console.WriteLine();
+                    Console.WriteLine("----------------------------------------------------------------------------");
+					Console.WriteLine("--   Lets play bombsweepers. Try your luck to find fields without bombs.  --");
+                    Console.WriteLine("----------------------------------------------------------------------------");
+                    Console.WriteLine();
+                    Console.WriteLine("----------------------------------------------------------------------------");
+                    Console.WriteLine("-                         USEFULL GAME COMMANDS:                           -");
+                    Console.WriteLine("- TOP - show the ranking *** RESTART - new game *** EXIT - end of the game!-");
+                    Console.WriteLine("----------------------------------------------------------------------------");
+                    Console.WriteLine();
+
+					CreateGameFieldOnConsole(gameField);
+					startGameFlag = false;
+				}
+                bool checkValidInputRow;
+                bool checkValidInputColumn;
+
+                PlayersTurn(ref playerTurn, ref row, ref column, out checkValidInputRow, out checkValidInputColumn);
+
+                while (checkValidInputColumn && checkValidInputRow != true)
+                {
+                    PlayersTurn(ref playerTurn, ref row, ref column, out checkValidInputRow, out checkValidInputColumn);
+                }
+
+                if (playerTurn.Length >= 3)
+				{
+                    if (checkValidInputRow && checkValidInputColumn && row <= gameField.GetLength(0) && column <= gameField.GetLength(1))
+					{
+						playerTurn = "turn";
+					}
+				}
+				switch (playerTurn)
+				{
+					case "top":	
+                        RankingPlayers(playerowesultHighScore);
+                        break;
+					case "restart":
+                        gameField = CreateGameField();
+                        bombs = Placebombs();
+                        CreateGameFieldOnConsole(gameField);
+						explosion = false;
+						startGameFlag = false;
+						break;
+					case "exit":
+						Console.WriteLine("Goodbye!!!");
+						break;
+					case "turn":
+						if (bombs[row, column] != '*')
+						{
+							if (bombs[row, column] == '-')
+							{
+								PlayersMove(gameField, bombs, row, column);
+								counterPlayerMoves++;
+							}
+							if (MAXIMUM == counterPlayerMoves)
+							{
+								winGameFlag = true;
+							}
+							else
+							{
+								CreateGameFieldOnConsole(gameField);
+							}
+						}
+						else
+						{
+							explosion = true;
+						}
+						break;
+					default:
+                        Console.WriteLine("{0}       ErowOR! {0} You are out of gamefield {0}",Environment.NewLine);
+						break;
+				}
+
+				if (explosion)
+				{
+					CreateGameFieldOnConsole(bombs);
+
+					Console.Write("{1} Step over bomb. Defeat!!! Your score is {0}. Give me your name please:", counterPlayerMoves,Environment.NewLine);
+                    string playersName = Console.ReadLine();
+
+					Score lastPlayersScore = new Score(playersName, counterPlayerMoves);
+
+					if (playerowesultHighScore.Count < 5)
+					{
+                        playerowesultHighScore.Add(lastPlayersScore);
+					}
+					else
+					{
+						for (int i = 0; i < playerowesultHighScore.Count; i++)
+						{
+                            if (playerowesultHighScore[i].ScorePoint < lastPlayersScore.ScorePoint)
+							{
+                                playerowesultHighScore.Insert(i, lastPlayersScore);
+								playerowesultHighScore.RemoveAt(playerowesultHighScore.Count - 1);
+								break;
+							}
+						}
+					}
+
+					playerowesultHighScore.Sort((Score r1, Score r2) => r2.Name.CompareTo(r1.Name));
+					playerowesultHighScore.Sort((Score r1, Score r2) => r2.ScorePoint.CompareTo(r1.ScorePoint));
+					RankingPlayers(playerowesultHighScore);
+
+                    ClearingGameBuffer(ref gameField, ref bombs, ref counterPlayerMoves, ref startGameFlag);
+                    explosion = false;
+				}
+				if (winGameFlag)
+				{
+                    CreateGameFieldOnConsole(bombs);
+
+                    Console.WriteLine("{0}          Congratulations!!!        {0} You make 35 moves and go out of the minefiled!!!",Environment.NewLine);
+					Console.WriteLine("Please, give me your name: ");
+                    string winnersName = Console.ReadLine();
+                    
+                    Score winnersScore = new Score(winnersName, counterPlayerMoves);
+                    playerowesultHighScore.Add(winnersScore);
+					RankingPlayers(playerowesultHighScore);
+
+                    ClearingGameBuffer(ref gameField, ref bombs, ref counterPlayerMoves, ref startGameFlag);
+					winGameFlag = false;
+					
+				}
+			}
+
+			while (playerTurn != "exit");
+            Console.WriteLine();
+			Console.WriteLine("Made in Bulgaria - Refactoring By Kalojan Atanasov!");
+            Console.Write("Goodbye and have a nice day! Press Enter twise for end!"); 
+            Console.Read();
+		}
+
+        private static void PlayersTurn(ref string playerTurn, ref int row, ref int column, out bool checkValidInputRow, out bool checkValidInputColumn)
+        {
+            Console.Write("Give me position where to step on - row and column (separate by space): ");
+
+            playerTurn = Console.ReadLine().Trim();
+
+            checkValidInputRow = int.TryParse(playerTurn[0].ToString(), out row);
+            checkValidInputColumn = int.TryParse(playerTurn[2].ToString(), out column);
+        }
+
+        private static void ClearingGameBuffer(ref char[,] gameField, ref char[,] bombs, ref int counterPlayerMoves, ref bool startGameFlag)
+        {
+            gameField = CreateGameField();
+            bombs = Placebombs();
+            counterPlayerMoves = 0;
+            startGameFlag = true;
+        }
+
+
+		private static void RankingPlayers(List<Score> Score)
+		{
+			Console.WriteLine("              Score:                ", Environment.NewLine);
+            int scoreCounter = Score.Count;
+
+            //show the results of all player on the console
+            if (scoreCounter > 0)
+			{
+                Console.WriteLine("Position     Name                      Score");
+                for (int i = 0; i < scoreCounter; i++)
+				{
+					Console.WriteLine("{0}.           {1}                  {2}",
+						i + 1, Score[i].Name, Score[i].ScorePoint);
+				}
+				Console.WriteLine();
+			}
+			else
+			{
+				Console.WriteLine(" No results availavle",Environment.NewLine);
+			}
+		}
+
+		private static void PlayersMove(char[,] gameField,
+			char[,] bombs, int row, int column)
+		{
+			char numberBomb = BombPlace(bombs, row, column);
+            bombs[row, column] = numberBomb;
+            gameField[row, column] = numberBomb;
+		}
+
+		private static void CreateGameFieldOnConsole(char[,] gameBoard)
+		{
+			int rows = gameBoard.GetLength(0);
+			int columns = gameBoard.GetLength(1);
+			Console.WriteLine("{0}    0 1 2 3 4 5 6 7 8 9",Environment.NewLine);
+			Console.WriteLine("   ---------------------");
+			for (int i = 0; i < rows; i++)
+			{
+				Console.Write("{0} | ", i);
+				for (int j = 0; j < columns; j++)
+				{
+                    Console.Write(string.Format("{0} ", gameBoard[i, j]));
+				}
+				Console.Write("|");
+				Console.WriteLine();
+			}
+			Console.WriteLine("   ---------------------{0}",Environment.NewLine);
+		}
+
+		private static char[,] CreateGameField()
+		{
+			int boardRows = 5;
+			int boardColumns = 10;
+			char[,] gameBoard = new char[boardRows, boardColumns];
+			for (int i = 0; i < boardRows; i++)
+			{
+				for (int j = 0; j < boardColumns; j++)
+				{
+                    gameBoard[i, j] = '?';
+				}
+			}
+
+            return gameBoard;
+		}
+
+		private static char[,] Placebombs()
+		{
+			int Rows = 5;
+			int Columns = 10;
+            char[,] gameField = new char[Rows, Columns];
+
+            for (int i = 0; i < Rows; i++)
+			{
+                for (int j = 0; j < Columns; j++)
+				{
+                    gameField[i, j] = '-';
+				}
+			}
+
+			List<int> bombConteiner = new List<int>();
+            
+            while (bombConteiner.Count < 15)
+			{
+				Random random = new Random();
+				int bombPosition = random.Next(50);
+                if (!bombConteiner.Contains(bombPosition))
+				{
+                    bombConteiner.Add(bombPosition);
+				}
+			}
+
+            foreach (int bombPosition in bombConteiner)
+			{
+                int column = (bombPosition / Columns);
+                int row = (bombPosition % Columns);
+                if (row == 0 && bombPosition != 0)
+				{
+                    column--;
+                    row = Columns;
+				}
+				else
+				{
+					row++;
+				}
+                gameField[column, row - 1] = '*';
+			}
+          
+            return gameField;
+		}
+  
+        private static char BombPlace(char[,] bombs, int row, int column)
+        {
+            int bombNumber = 0;
+            int rows = bombs.GetLength(0);
+            int columns = bombs.GetLength(1);
+
+            if (row - 1 >= 0)
+            {
+                if (bombs[row - 1, column] == '*')
+                { 
+                    bombNumber++; 
+                }
+            }
+            if (row + 1 < rows)
+            {
+                if (bombs[row + 1, column] == '*')
+                { 
+                    bombNumber++; 
+                }
+            }
+            if (column - 1 >= 0)
+            {
+                if (bombs[row, column - 1] == '*')
+                { 
+                    bombNumber++;
+                }
+            }
+            if (column + 1 < columns)
+            {
+                if (bombs[row, column + 1] == '*')
+                { 
+                    bombNumber++;
+                }
+            }
+            if ((row - 1 >= 0) && (column - 1 >= 0))
+            {
+                if (bombs[row - 1, column - 1] == '*')
+                { 
+                    bombNumber++; 
+                }
+            }
+            if ((row - 1 >= 0) && (column + 1 < columns))
+            {
+                if (bombs[row - 1, column + 1] == '*')
+                { 
+                    bombNumber++; 
+                }
+            }
+            if ((row + 1 < rows) && (column - 1 >= 0))
+            {
+                if (bombs[row + 1, column - 1] == '*')
+                { 
+                    bombNumber++; 
+                }
+            }
+            if ((row + 1 < rows) && (column + 1 < columns))
+            {
+                if (bombs[row + 1, column + 1] == '*')
+                { 
+                    bombNumber++; 
+                }
+            }
+            return char.Parse(bombNumber.ToString());
+        }
+       
+    }
+         
+}
+
+namespace Minesweeper
+{
+   public class Score 
+    {
+  		private string name;
+			private int scorePoint;
+
+			public string Name
+			{
+				get { return name; }
+				set { name = value; }
+			}
+
+			public int ScorePoint
+			{
+				get { return scorePoint; }
+				set { scorePoint = value; }
+			}
+
+			public Score() { }
+
+            public Score(string name, int scorePoint)
+			{
+				this.Name = name;
+                this.ScorePoint = scorePoint;
+			}
+		}
+}
